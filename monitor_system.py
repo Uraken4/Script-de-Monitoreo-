@@ -487,9 +487,53 @@ def clean_old_logs(max_logs_to_keep):
             logger.error(f"Error al eliminar archivo de métricas de Prometheus {prometheus_metrics_file}: {e}")
 
 
-# --- Ejecutar script ---
-if __name__ == "__main__":
-    main()
+# --- Función principal ---
+def main():
+    logger.info(f"INICIO Monitoreo de Sistema y Red (Python)")
+    logger.info(f"Logfile: {CURRENT_LOGFILE}")
+    logger.info(f"Configuracion: DISK_THRESHOLD={DISK_THRESHOLD}%, CPU_THRESHOLD={CPU_THRESHOLD}%, PING_HOST={PING_HOST}, LOAD_AVG_WARN_THRESHOLD={LOAD_AVG_WARN_THRESHOLD}, MEM_FREE_WARN_THRESHOLD_GB={MEM_FREE_WARN_THRESHOLD_GB}GB, MAX_LOGS_TO_KEEP={MAX_LOGS_TO_KEEP}")
+
+    current_time = datetime.now().strftime('%H:%M:%S')
+    
+    # Imprimir el encabezado principal del reporte en la consola
+    print("\n")
+    print(f"--- Reporte de Monitoreo (Python) ({current_time}) ---")
+    print("-----------------------------------")
+    logger.info("--- Inicio Reporte de Monitoreo ---")
+
+    # Ejecutar monitoreo de sistema
+    system_summary = monitor_system()
+    
+    # Ejecutar monitoreo de red
+    network_summary = monitor_network()
+
+    # Ejecutar monitoreo de servicios específicos
+    services_summary = monitor_specific_services()
+
+    # Imprimir el resumen en la consola
+    print("\n--- Resumen del Monitoreo ({}) ---".format(current_time))
+    print("===================================")
+    print("RESULTADOS DE SISTEMA:")
+    for item in system_summary:
+        print(f"  {item}")
+    print("\nRESULTADOS DE RED:")
+    for item in network_summary:
+        print(f"  {item}")
+    print("\nRESULTADOS DE SERVICIOS ESPECÍFICOS:")
+    for item in services_summary:
+        print(f"  {item}")
+    print("===================================")
+    print(f"Reporte completo guardado en: {CURRENT_LOGFILE}")
+    logger.info("--- Fin Reporte de Monitoreo ---")
+
+    # Generar el archivo de métricas de Prometheus
+    generate_prometheus_metrics()
+
     # Llamar a la función de limpieza de logs al final de la ejecución
     # Esto manejará la rotación por conteo de archivos históricos y el archivo de métricas.
     clean_old_logs(MAX_LOGS_TO_KEEP)
+
+
+# --- Ejecutar script ---
+if __name__ == "__main__":
+    main()
